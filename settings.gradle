@@ -1,0 +1,7 @@
+rootProject.name = 'couple-quest'
+include 'gateway'
+include 'auth-service'
+include 'task-service'
+include 'menu-meals-service'
+include 'economy-service'
+include 'notification-service'
