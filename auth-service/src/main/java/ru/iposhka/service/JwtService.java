@@ -2,7 +2,6 @@ package ru.iposhka.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.util.Base64;
@@ -30,12 +29,12 @@ public class JwtService {
         refreshExpirationMillis = refreshExpirationMinutes * 60 * 1000;
     }
 
-    public String generateAccessToken(Long userId, Gender gender) {
-        return createToken(userId, gender, accessExpirationMillis);
+    public String generateAccessToken(Long userId, String name, Gender gender) {
+        return createToken(userId, gender, name, accessExpirationMillis);
     }
 
-    public String generateRefreshToken(Long userId, Gender gender) {
-        return createToken(userId, gender, refreshExpirationMillis);
+    public String generateRefreshToken(Long userId, String name, Gender gender) {
+        return createToken(userId, gender, name, refreshExpirationMillis);
     }
 
     public Claims validateRefreshToken(String refreshToken) {
@@ -52,7 +51,7 @@ public class JwtService {
         }
     }
 
-    private String createToken(Long userId, Gender gender, Long expirationMillis) {
+    private String createToken(Long userId, Gender gender, String name, Long expirationMillis) {
         long now = System.currentTimeMillis();
         Date issuedAt = new Date(now);
         Date expiration = new Date(now + expirationMillis);
