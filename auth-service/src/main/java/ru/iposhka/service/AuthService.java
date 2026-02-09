@@ -50,13 +50,14 @@ public class AuthService {
 
         Long userId = claims.get("user_id", Long.class);
         Gender gender = claims.get("gender", Gender.class);
-        return new AuthResponseDto(jwtService.generateAccessToken(userId, gender));
+        String name = claims.get("name", String.class);
+        return new AuthResponseDto(jwtService.generateAccessToken(userId, name, gender));
     }
 
     private JwtResponseDto authenticate(User user) {
         return JwtResponseDto.builder()
-                .accessToken(jwtService.generateAccessToken(user.getId(), user.getGender()))
-                .refreshToken(jwtService.generateRefreshToken(user.getId(), user.getGender()))
+                .accessToken(jwtService.generateAccessToken(user.getId(), user.getName(), user.getGender()))
+                .refreshToken(jwtService.generateRefreshToken(user.getId(), user.getName(), user.getGender()))
                 .build();
     }
 }
