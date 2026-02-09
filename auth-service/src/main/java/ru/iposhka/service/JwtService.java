@@ -2,6 +2,7 @@ package ru.iposhka.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.util.Base64;
@@ -16,6 +17,7 @@ import ru.iposhka.model.Gender;
 @Slf4j
 @Service
 public class JwtService {
+    private final JwtParser jwtParser;
     private final SecretKey key;
     private final long accessExpirationMillis;
     private final long refreshExpirationMillis;
@@ -25,6 +27,9 @@ public class JwtService {
             @Value("${jwt.refresh.expiration_minutes}") long refreshExpirationMinutes) {
         byte[] keyBytes = Base64.getDecoder().decode(secret);
         this.key = Keys.hmacShaKeyFor(keyBytes);
+        jwtParser = Jwts.parser()
+                .verifyWith(key)
+                .build();
         accessExpirationMillis = 1000;
         refreshExpirationMillis = refreshExpirationMinutes * 60 * 1000;
     }
@@ -39,9 +44,7 @@ public class JwtService {
 
     public Claims validateRefreshToken(String refreshToken) {
         try {
-            return Jwts.parser()
-                    .verifyWith(key)
-                    .build()
+            return jwtParser
                     .parseSignedClaims(refreshToken)
                     .getPayload();
         } catch (ExpiredJwtException e) {
