@@ -13,7 +13,7 @@ spring:
             - id: auth-service
               uri: ${app.routes.auth-service.uri}
               predicates:
-                - Path=/api/auth/**
+                - Path=/api/auth/**,/api/couple/**
             - id: notification-service
               uri: ${app.routes.notification-service.uri}
               predicates:
