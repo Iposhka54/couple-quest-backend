@@ -35,13 +35,13 @@ public class CoupleController {
         return ResponseEntity.ok(coupleService.acceptInvite(userId, requestDto.token()));
     }
 
-    @GetMapping("/couple/me")
+    @GetMapping("/me")
     public ResponseEntity<CoupleStateResponseDto> getMyCoupleState(
             @RequestHeader("X-Auth-User-Id") Long userId) {
         return ResponseEntity.ok(coupleService.getMyState(userId));
     }
 
-    @DeleteMapping("/couple/invites/current")
+    @DeleteMapping("/invites/current")
     public ResponseEntity<Void> revokeCurrentInvite(@RequestHeader("X-Auth-User-Id") Long userId) {
         coupleService.revokeCurrentInvite(userId);
         return ResponseEntity.noContent().build();
