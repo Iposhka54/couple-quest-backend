@@ -154,11 +154,10 @@ public class CoupleService {
     public void revokeCurrentInvite(Long userId) {
         LocalDateTime now = now();
 
-        User user = getUserForUpdate(userId);
-        ensureUserHasNoActiveCouple(user.getId());
+        ensureUserHasNoActiveCouple(userId);
 
         CoupleInvite invite = coupleInviteRepository.findTopActiveByInviterIdForUpdate(
-                        user.getId(),
+                        userId,
                         InviteStatus.ACTIVE,
                         now
                 )
