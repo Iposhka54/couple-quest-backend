@@ -1,24 +1,63 @@
 package ru.iposhka.repository;
 
+import jakarta.persistence.LockModeType;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import ru.iposhka.model.CoupleInvite;
 import ru.iposhka.model.InviteStatus;
 
 public interface CoupleInviteRepository extends JpaRepository<CoupleInvite, UUID> {
 
     @Query("""
-            select ci from CoupleInvite ci
-            where ci.inviter.id = :inviterId
-              and ci.status = :status
-              and (ci.expiresAt is null or ci.expiresAt > :now)
-            order by ci.createdAt desc
-            """)
-    Optional<CoupleInvite> findTopActiveByInviterId(@Param("inviterId") Long inviterId,
-            @Param("status") InviteStatus status,
-            @Param("now") LocalDateTime now);
+           select ci
+           from CoupleInvite ci
+           where ci.inviter.id = :inviterId
+             and ci.status = :status
+             and ci.expiresAt > :now
+           order by ci.createdAt desc
+           """)
+    Optional<CoupleInvite> findTopActiveByInviterId(Long inviterId, InviteStatus status, LocalDateTime now);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+           select ci
+           from CoupleInvite ci
+           where ci.id = :id
+           """)
+    Optional<CoupleInvite> findByIdForUpdate(UUID id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+           select ci
+           from CoupleInvite ci
+           where ci.inviter.id = :inviterId
+             and ci.status = :status
+             and ci.expiresAt > :now
+           order by ci.createdAt desc
+           """)
+    Optional<CoupleInvite> findTopActiveByInviterIdForUpdate(
+            Long inviterId,
+            InviteStatus status,
+            LocalDateTime now
+    );
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+           select ci
+           from CoupleInvite ci
+           where ci.inviter.id = :inviterId
+             and ci.status = :status
+             and ci.expiresAt > :now
+           order by ci.createdAt desc
+           """)
+    List<CoupleInvite> findAllActiveByInviterIdForUpdate(
+            Long inviterId,
+            InviteStatus status,
+            LocalDateTime now
+    );
 }
