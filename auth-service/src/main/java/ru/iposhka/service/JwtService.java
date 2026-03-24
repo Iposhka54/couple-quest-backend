@@ -68,7 +68,7 @@ public class JwtService {
                 .claims(claims)
                 .issuedAt(issuedAt)
                 .expiration(expiration)
-                .signWith(key)
+                .signWith(key, Jwts.SIG.HS384)
                 .compact();
     }
 }

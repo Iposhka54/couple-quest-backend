@@ -2,14 +2,14 @@ package ru.iposhka.gateway.config;
 
 import io.jsonwebtoken.security.Keys;
 import java.util.Base64;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
@@ -17,6 +17,7 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 
 @Configuration
 @EnableWebFluxSecurity
+@Slf4j
 public class SecurityConfig {
 
     @Bean
@@ -43,6 +44,7 @@ public class SecurityConfig {
     public ReactiveJwtDecoder jwtDecoder(@Value("${jwt.secret}") String secret) {
         byte[] keyBytes = Base64.getDecoder().decode(secret);
         return NimbusReactiveJwtDecoder.withSecretKey(Keys.hmacShaKeyFor(keyBytes))
+                .macAlgorithm(MacAlgorithm.HS384)
                 .build();
     }
 }
