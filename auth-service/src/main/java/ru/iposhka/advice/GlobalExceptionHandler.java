@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.iposhka.dto.response.ErrorResponseDto;
 import ru.iposhka.exception.BadJwtException;
+import ru.iposhka.exception.CoupleOperationException;
+import ru.iposhka.exception.InviteNotFoundException;
 import ru.iposhka.exception.UserAlreadyExistsException;
 import ru.iposhka.exception.UserNotFoundException;
 
@@ -58,6 +60,24 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.badRequest()
                 .body(buildError(HttpStatus.UNAUTHORIZED, request, e.getMessage()));
+    }
+
+    @ExceptionHandler(InviteNotFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleInviteNotFound(InviteNotFoundException e,
+            HttpServletRequest request) {
+        log.info("Invite error: {}", e.getMessage());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(buildError(HttpStatus.NOT_FOUND, request, e.getMessage()));
+    }
+
+    @ExceptionHandler(CoupleOperationException.class)
+    public ResponseEntity<ErrorResponseDto> handleCoupleOperation(CoupleOperationException e,
+            HttpServletRequest request) {
+        log.info("Couple operation error: {}", e.getMessage());
+
+        return ResponseEntity.badRequest()
+                .body(buildError(HttpStatus.BAD_REQUEST, request, e.getMessage()));
     }
 
     private ErrorResponseDto buildError(HttpStatus status, HttpServletRequest request, String... message) {

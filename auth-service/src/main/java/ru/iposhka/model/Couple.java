@@ -25,7 +25,7 @@ import lombok.Setter;
 @Builder
 @Getter
 @Setter
-@Table(uniqueConstraints = {
+@Table(name = "couple", uniqueConstraints = {
     @UniqueConstraint(columnNames = "boy_id"),
     @UniqueConstraint(columnNames = "girlfriend_id")
 })
