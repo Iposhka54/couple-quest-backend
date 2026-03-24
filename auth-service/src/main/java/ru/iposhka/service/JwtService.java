@@ -7,12 +7,12 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Map;
 import javax.crypto.SecretKey;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.iposhka.exception.BadJwtException;
-import ru.iposhka.model.Gender;
 
 @Slf4j
 @Service
@@ -22,24 +22,26 @@ public class JwtService {
     private final long accessExpirationMillis;
     private final long refreshExpirationMillis;
 
-    public JwtService(@Value("${jwt.secret}") String secret,
+    public JwtService(
+            @Value("${jwt.secret}") String secret,
             @Value("${jwt.access.expiration_minutes}") long accessExpirationMinutes,
-            @Value("${jwt.refresh.expiration_minutes}") long refreshExpirationMinutes) {
+            @Value("${jwt.refresh.expiration_minutes}") long refreshExpirationMinutes
+    ) {
         byte[] keyBytes = Base64.getDecoder().decode(secret);
         this.key = Keys.hmacShaKeyFor(keyBytes);
-        jwtParser = Jwts.parser()
+        this.jwtParser = Jwts.parser()
                 .verifyWith(key)
                 .build();
-        accessExpirationMillis = accessExpirationMinutes * 60 * 1000;
-        refreshExpirationMillis = refreshExpirationMinutes * 60 * 1000;
+        this.accessExpirationMillis = accessExpirationMinutes * 60 * 1000;
+        this.refreshExpirationMillis = refreshExpirationMinutes * 60 * 1000;
     }
 
-    public String generateAccessToken(Long userId, String name, Gender gender) {
-        return createToken(userId, gender, name, accessExpirationMillis);
+    public String generateAccessToken(Map<String, Object> claims) {
+        return createToken(claims, accessExpirationMillis);
     }
 
-    public String generateRefreshToken(Long userId, String name, Gender gender) {
-        return createToken(userId, gender, name, refreshExpirationMillis);
+    public String generateRefreshToken(Map<String, Object> claims) {
+        return createToken(claims, refreshExpirationMillis);
     }
 
     public Claims validateRefreshToken(String refreshToken) {
@@ -54,16 +56,16 @@ public class JwtService {
         }
     }
 
-    private String createToken(Long userId, Gender gender, String name, Long expirationMillis) {
+    private String createToken(Map<String, Object> claims, long expirationMillis) {
         long now = System.currentTimeMillis();
         Date issuedAt = new Date(now);
         Date expiration = new Date(now + expirationMillis);
 
+        Object userId = claims.get("user_id");
+
         return Jwts.builder()
                 .subject(userId.toString())
-                .claim("user_id", userId)
-                .claim("name", name)
-                .claim("gender", gender)
+                .claims(claims)
                 .issuedAt(issuedAt)
                 .expiration(expiration)
                 .signWith(key)

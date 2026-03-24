@@ -1,6 +1,8 @@
 package ru.iposhka.service;
 
 import io.jsonwebtoken.Claims;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,10 @@ import ru.iposhka.repository.UserRepository;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+    public static final String USER_ID = "user_id";
+    public static final String NAME = "name";
+    public static final String GENDER = "gender";
+    public static final String EMAIL = "email";
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
@@ -42,28 +48,38 @@ public class AuthService {
 
     public JwtResponseDto signIn(UserSignInRequestDto userSignInRequestDto) {
         User user = userRepository.findByEmail(userSignInRequestDto.getEmail())
-                .orElseThrow(() -> new UserNotFoundException("Пользователь с %s не существует.".formatted(
-                        userSignInRequestDto.getEmail())));
+                .orElseThrow(() -> new UserNotFoundException(
+                        "Пользователь с %s не существует.".formatted(userSignInRequestDto.getEmail())
+                ));
 
         if (!passwordEncoder.matches(userSignInRequestDto.getPassword(), user.getPassword())) {
             throw new UserNotFoundException("Неверный email или пароль.");
         }
+
         return authenticate(user);
     }
 
     public AuthResponseDto refreshToken(String refreshToken) {
         Claims claims = jwtService.validateRefreshToken(refreshToken);
 
-        Long userId = claims.get("user_id", Long.class);
-        Gender gender = claims.get("gender", Gender.class);
-        String name = claims.get("name", String.class);
-        return new AuthResponseDto(jwtService.generateAccessToken(userId, name, gender));
+        return new AuthResponseDto(jwtService.generateAccessToken(claims));
     }
 
     private JwtResponseDto authenticate(User user) {
+        Map<String, Object> tokenClaims = buildTokenClaims(user);
+
         return JwtResponseDto.builder()
-                .accessToken(jwtService.generateAccessToken(user.getId(), user.getName(), user.getGender()))
-                .refreshToken(jwtService.generateRefreshToken(user.getId(), user.getName(), user.getGender()))
+                .accessToken(jwtService.generateAccessToken(tokenClaims))
+                .refreshToken(jwtService.generateRefreshToken(tokenClaims))
                 .build();
+    }
+
+    private Map<String, Object> buildTokenClaims(User user) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put(USER_ID, user.getId());
+        claims.put(NAME, user.getName());
+        claims.put(GENDER, user.getGender().name());
+        claims.put(EMAIL, user.getEmail());
+        return claims;
     }
 }
