@@ -17,13 +17,15 @@ import ru.iposhka.repository.UserRepository;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     public JwtResponseDto signUp(UserSignUpRequestDto userSignUpRequestDto) {
         if (userRepository.existsUserByEmail(userSignUpRequestDto.getEmail())) {
-            throw new UserAlreadyExistsException("Пользователь с %s уже существует!".formatted(userSignUpRequestDto.getEmail()));
+            throw new UserAlreadyExistsException(
+                    "Пользователь с %s уже существует!".formatted(userSignUpRequestDto.getEmail()));
         }
 
         User user = User.builder()
@@ -42,6 +44,10 @@ public class AuthService {
         User user = userRepository.findByEmail(userSignInRequestDto.getEmail())
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с %s не существует.".formatted(
                         userSignInRequestDto.getEmail())));
+
+        if (!passwordEncoder.matches(userSignInRequestDto.getPassword(), user.getPassword())) {
+            throw new UserNotFoundException("Неверный email или пароль.");
+        }
         return authenticate(user);
     }
 
