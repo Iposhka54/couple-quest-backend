@@ -1,0 +1,14 @@
+app:
+  routes:
+    auth-service:
+      uri: http://localhost:8081
+    tasks-service:
+      uri: http://localhost:8082
+    menu-service:
+      uri: http://localhost:8083
+    economy-service:
+      uri: http://localhost:8084
+    notification-service:
+      uri: http://localhost:8085
+jwt:
+  secret: 632eca39fc29068edc74133ca9cf8f40b4942191f80c0c78dd588835beb5f57b

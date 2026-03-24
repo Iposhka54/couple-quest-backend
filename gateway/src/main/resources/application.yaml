@@ -4,3 +4,31 @@ server:
 spring:
   application:
     name: gateway
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: auth-service
+              uri: ${app.routes.auth-service.uri}
+              predicates:
+                - Path=/api/auth/**
+            - id: notification-service
+              uri: ${app.routes.notification-service.uri}
+              predicates:
+                - Path=/api/notifications/**
+            - id: tasks-service
+              uri: ${app.routes.tasks-service.uri}
+              predicates:
+                - Path=/api/tasks/**
+            - id: menu-service
+              uri: ${app.routes.menu-service.uri}
+              predicates:
+                - Path=/api/menu/**
+                - Path=/api/meals/**
+            - id: economy-service
+              uri: ${app.routes.economy-service.uri}
+              predicates:
+                - Path=/api/wallet/**
+                - Path=/api/transactions/**

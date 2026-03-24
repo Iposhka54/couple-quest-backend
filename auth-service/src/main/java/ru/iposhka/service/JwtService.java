@@ -30,7 +30,7 @@ public class JwtService {
         jwtParser = Jwts.parser()
                 .verifyWith(key)
                 .build();
-        accessExpirationMillis = 1000;
+        accessExpirationMillis = accessExpirationMinutes * 60 * 1000;
         refreshExpirationMillis = refreshExpirationMinutes * 60 * 1000;
     }
 
@@ -62,6 +62,7 @@ public class JwtService {
         return Jwts.builder()
                 .subject(userId.toString())
                 .claim("user_id", userId)
+                .claim("name", name)
                 .claim("gender", gender)
                 .issuedAt(issuedAt)
                 .expiration(expiration)

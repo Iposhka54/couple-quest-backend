@@ -21,7 +21,6 @@ import ru.iposhka.service.AuthService;
 @RequestMapping("/auth")
 public class AuthController {
     private final AuthService authService;
-    @Value("${jwt.refresh.expiration_minutes}")
     private final long refreshExpirationSeconds;
 
     public AuthController(AuthService authService,
@@ -51,7 +50,7 @@ public class AuthController {
         return ResponseEntity.ok(new AuthResponseDto(jwtResponseDto.getAccessToken()));
     }
 
-    @PostMapping("/api/auth/refresh")
+    @PostMapping("/refresh")
     public ResponseEntity<AuthResponseDto> refreshToken(@CookieValue(name = "refresh_token", required = false) String refreshToken) {
         AuthResponseDto authResponseDto = authService.refreshToken(refreshToken);
         return ResponseEntity.ok(authResponseDto);
