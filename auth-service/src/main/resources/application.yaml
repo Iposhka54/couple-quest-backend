@@ -32,3 +32,6 @@ jwt:
     expiration_minutes: 30
   refresh:
     expiration_minutes: 44640 #31 day
+couple:
+  invite:
+    expiration-hours: 24
