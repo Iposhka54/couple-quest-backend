@@ -24,7 +24,7 @@ public class GlobalExceptionHandler {
         log.info(e.getMessage());
 
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(buildError(HttpStatus.CONFLICT, request, e.getMessage()));
+                .body(buildError(request, e.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
         log.info("Validation failed: {}", Arrays.toString(messages));
 
         return ResponseEntity.badRequest()
-                .body(buildError(HttpStatus.BAD_REQUEST, request, messages));
+                .body(buildError(request, messages));
     }
 
     @ExceptionHandler(BadJwtException.class)
@@ -48,7 +48,7 @@ public class GlobalExceptionHandler {
         log.info("Jwt error: {}", e.getMessage());
 
         return ResponseEntity.badRequest()
-                .body(buildError(HttpStatus.UNAUTHORIZED, request, e.getMessage()));
+                .body(buildError(request, e.getMessage()));
     }
 
     @ExceptionHandler(NotFoundException.class)
@@ -57,14 +57,12 @@ public class GlobalExceptionHandler {
         log.info(e.getMessage());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(buildError(HttpStatus.NOT_FOUND, request, e.getMessage()));
+                .body(buildError(request, e.getMessage()));
     }
 
-    private ErrorResponseDto buildError(HttpStatus status, HttpServletRequest request, String... message) {
+    private ErrorResponseDto buildError(HttpServletRequest request, String... message) {
         return new ErrorResponseDto(
                 Instant.now().toString(),
-                status.value(),
-                status.getReasonPhrase(),
                 message,
                 request.getRequestURI()
         );
