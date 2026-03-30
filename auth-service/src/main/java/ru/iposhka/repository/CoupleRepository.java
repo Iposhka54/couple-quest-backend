@@ -1,5 +1,6 @@
 package ru.iposhka.repository;
 
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import ru.iposhka.model.Couple;
@@ -18,4 +19,12 @@ public interface CoupleRepository extends JpaRepository<Couple, Long> {
           and (c.boy.id = :userId or c.girlfriend.id = :userId)
     """)
     boolean existsActiveByUserId(Long userId, CoupleStatus status);
+
+    @Query("""
+    select c
+    from Couple c
+    where c.status = :status
+      and (c.boy.id = :userId or c.girlfriend.id = :userId)
+""")
+    Optional<Couple> findActiveByUserId(Long userId, CoupleStatus status);
 }

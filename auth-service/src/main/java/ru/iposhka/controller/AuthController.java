@@ -7,27 +7,40 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.iposhka.dto.request.UserSignInRequestDto;
 import ru.iposhka.dto.request.UserSignUpRequestDto;
 import ru.iposhka.dto.response.AuthResponseDto;
 import ru.iposhka.dto.response.JwtResponseDto;
+import ru.iposhka.dto.response.UserResponseDto;
 import ru.iposhka.service.AuthService;
+import ru.iposhka.service.UserService;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
     private final AuthService authService;
+    private final UserService userService;
     private final long refreshExpirationSeconds;
 
     public AuthController(AuthService authService,
+            UserService userService,
             @Value("${jwt.refresh.expiration_minutes}") long refreshExpirationMinutes) {
         this.authService = authService;
+        this.userService = userService;
         refreshExpirationSeconds = refreshExpirationMinutes * 60;
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponseDto> me(@RequestHeader("X-Auth-User-Id") Long userId) {
+        return ResponseEntity.ok(userService.getInfoAboutUser(userId));
+    }
+
 
     @PostMapping("/signUp")
     public ResponseEntity<AuthResponseDto> signUp(@Validated @RequestBody UserSignUpRequestDto userSignUpRequestDto,
