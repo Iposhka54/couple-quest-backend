@@ -16,7 +16,8 @@ import reactor.core.publisher.Mono;
 @Component
 @RequiredArgsConstructor
 public class JwtClaimsToHeadersGlobalFilter implements GlobalFilter {
-    private static final String AUTH_PATH_PREFIX = "/api/auth/";
+    private static final String AUTH_PATH_PATH = "/api/auth/";
+    private static final String AUTH_ME_PATH = "/api/auth/me";
 
     private final ReactiveJwtDecoder jwtDecoder;
 
@@ -28,7 +29,7 @@ public class JwtClaimsToHeadersGlobalFilter implements GlobalFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
-        if (path.startsWith(AUTH_PATH_PREFIX)) {
+        if (path.startsWith(AUTH_PATH_PATH) && !path.startsWith(AUTH_ME_PATH)) {
             return chain.filter(exchange);
         }
 
