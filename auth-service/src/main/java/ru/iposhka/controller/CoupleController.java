@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.iposhka.dto.request.AcceptInviteRequestDto;
 import ru.iposhka.dto.response.CoupleInviteResponseDto;
 import ru.iposhka.dto.response.CoupleStateResponseDto;
 import ru.iposhka.service.CoupleService;
@@ -22,6 +22,12 @@ public class CoupleController {
 
     private final CoupleService coupleService;
 
+    @GetMapping("/invite")
+    public ResponseEntity<CoupleInviteResponseDto> getInvite(
+            @RequestHeader("X-Auth-User-Id") Long userId) {
+        return ResponseEntity.ok(coupleService.getInvite(userId));
+    }
+
     @PostMapping("/invite")
     public ResponseEntity<CoupleInviteResponseDto> createOrGetInvite(
             @RequestHeader("X-Auth-User-Id") Long userId) {
@@ -29,19 +35,13 @@ public class CoupleController {
     }
 
     @PostMapping("/invite/accept")
-    public ResponseEntity<CoupleInviteResponseDto> acceptInvite(
+    public ResponseEntity<CoupleStateResponseDto> acceptInvite(
             @RequestHeader("X-Auth-User-Id") Long userId,
-            @Validated @RequestBody AcceptInviteRequestDto requestDto) {
-        return ResponseEntity.ok(coupleService.acceptInvite(userId, requestDto.token()));
+            @RequestParam("invite") String token) {
+        return ResponseEntity.ok(coupleService.acceptInvite(userId, token));
     }
 
-    @GetMapping("/me")
-    public ResponseEntity<CoupleStateResponseDto> getMyCoupleState(
-            @RequestHeader("X-Auth-User-Id") Long userId) {
-        return ResponseEntity.ok(coupleService.getMyState(userId));
-    }
-
-    @DeleteMapping("/invites/current")
+    @DeleteMapping("/invite")
     public ResponseEntity<Void> revokeCurrentInvite(@RequestHeader("X-Auth-User-Id") Long userId) {
         coupleService.revokeCurrentInvite(userId);
         return ResponseEntity.noContent().build();

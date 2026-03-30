@@ -1,5 +1,6 @@
 package ru.iposhka.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
@@ -26,14 +27,11 @@ public class CoupleInvite {
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "couple_id")
-    private Couple couple;
-
-    @ManyToOne
     @JoinColumn(name = "inviter_id")
     private User inviter;
 
-    private String tokenHash;
+    @Column(unique = true)
+    private String token;
 
     private LocalDateTime expiresAt;
 

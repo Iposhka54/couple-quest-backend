@@ -2,17 +2,14 @@ package ru.iposhka.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -48,7 +45,4 @@ public class Couple {
     private CoupleStatus status = CoupleStatus.ACTIVE;
 
     private LocalDateTime createdAt;
-
-    @OneToMany(mappedBy = "couple", fetch = FetchType.LAZY)
-    private List<CoupleInvite> invites;
 }

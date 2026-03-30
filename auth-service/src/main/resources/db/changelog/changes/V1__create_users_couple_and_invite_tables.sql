@@ -18,8 +18,8 @@ CREATE TABLE users
 CREATE TABLE couple
 (
     id            BIGSERIAL PRIMARY KEY,
-    boy_id        BIGINT REFERENCES users (id),
-    girlfriend_id BIGINT REFERENCES users (id),
+    boy_id        BIGINT REFERENCES users (id) UNIQUE,
+    girlfriend_id BIGINT REFERENCES users (id) UNIQUE,
     status        SMALLINT  NOT NULL,
     created_at    TIMESTAMP DEFAULT now()
 );
@@ -27,11 +27,15 @@ CREATE TABLE couple
 CREATE TABLE couple_invite
 (
     id              UUID PRIMARY KEY,
-    couple_id       BIGINT REFERENCES couple (id),
     inviter_id      BIGINT REFERENCES users (id),
-    token_hash      VARCHAR(128) NOT NULL,
+    token      VARCHAR(128) NOT NULL UNIQUE,
     expires_at      TIMESTAMP,
     expected_gender SMALLINT     NOT NULL,
     status          SMALLINT     NOT NULL,
     created_at      TIMESTAMP    DEFAULT now()
 );
+
+--changeset auth-service:create-unique index on active invite
+CREATE UNIQUE INDEX uk_couple_invite_active_inviter
+    ON couple_invite (inviter_id)
+    WHERE status = 0;

@@ -1,6 +1,7 @@
 package ru.iposhka.repository;
 
 import jakarta.persistence.LockModeType;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -13,6 +14,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select u from User u where u.id = :id")
-    Optional<User> findByIdForUpdate(Long id);
+    @Query("""
+        select u
+        from User u
+        where u.id in :ids
+        order by u.id
+    """)
+    List<User> findAllByIdInForUpdate(List<Long> ids);
+
+    Optional<User> findById(Long id);
 }

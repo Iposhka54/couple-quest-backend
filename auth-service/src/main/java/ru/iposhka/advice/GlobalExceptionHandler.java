@@ -11,26 +11,15 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.iposhka.dto.response.ErrorResponseDto;
 import ru.iposhka.exception.BadJwtException;
-import ru.iposhka.exception.CoupleOperationException;
-import ru.iposhka.exception.InviteNotFoundException;
-import ru.iposhka.exception.UserAlreadyExistsException;
-import ru.iposhka.exception.UserNotFoundException;
+import ru.iposhka.exception.ConflictException;
+import ru.iposhka.exception.NotFoundException;
 
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorResponseDto> handleUserNotFound(UserNotFoundException e,
-            HttpServletRequest request) {
-        log.info(e.getMessage());
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(buildError(HttpStatus.NOT_FOUND, request, e.getMessage()));
-    }
-
-    @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponseDto> handleUserAlreadyExists(UserAlreadyExistsException e,
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ErrorResponseDto> handleConflict(ConflictException e,
             HttpServletRequest request) {
         log.info(e.getMessage());
 
@@ -62,22 +51,13 @@ public class GlobalExceptionHandler {
                 .body(buildError(HttpStatus.UNAUTHORIZED, request, e.getMessage()));
     }
 
-    @ExceptionHandler(InviteNotFoundException.class)
-    public ResponseEntity<ErrorResponseDto> handleInviteNotFound(InviteNotFoundException e,
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleNotFound(NotFoundException e,
             HttpServletRequest request) {
-        log.info("Invite error: {}", e.getMessage());
+        log.info(e.getMessage());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(buildError(HttpStatus.NOT_FOUND, request, e.getMessage()));
-    }
-
-    @ExceptionHandler(CoupleOperationException.class)
-    public ResponseEntity<ErrorResponseDto> handleCoupleOperation(CoupleOperationException e,
-            HttpServletRequest request) {
-        log.info("Couple operation error: {}", e.getMessage());
-
-        return ResponseEntity.badRequest()
-                .body(buildError(HttpStatus.BAD_REQUEST, request, e.getMessage()));
     }
 
     private ErrorResponseDto buildError(HttpStatus status, HttpServletRequest request, String... message) {

@@ -10,8 +10,8 @@ import ru.iposhka.dto.request.UserSignInRequestDto;
 import ru.iposhka.dto.request.UserSignUpRequestDto;
 import ru.iposhka.dto.response.AuthResponseDto;
 import ru.iposhka.dto.response.JwtResponseDto;
-import ru.iposhka.exception.UserAlreadyExistsException;
-import ru.iposhka.exception.UserNotFoundException;
+import ru.iposhka.exception.ConflictException;
+import ru.iposhka.exception.NotFoundException;
 import ru.iposhka.model.Gender;
 import ru.iposhka.model.User;
 import ru.iposhka.repository.UserRepository;
@@ -30,7 +30,7 @@ public class AuthService {
 
     public JwtResponseDto signUp(UserSignUpRequestDto userSignUpRequestDto) {
         if (userRepository.existsUserByEmail(userSignUpRequestDto.getEmail())) {
-            throw new UserAlreadyExistsException(
+            throw new ConflictException(
                     "Пользователь с %s уже существует!".formatted(userSignUpRequestDto.getEmail()));
         }
 
@@ -48,12 +48,12 @@ public class AuthService {
 
     public JwtResponseDto signIn(UserSignInRequestDto userSignInRequestDto) {
         User user = userRepository.findByEmail(userSignInRequestDto.getEmail())
-                .orElseThrow(() -> new UserNotFoundException(
+                .orElseThrow(() -> new NotFoundException(
                         "Пользователь с %s не существует.".formatted(userSignInRequestDto.getEmail())
                 ));
 
         if (!passwordEncoder.matches(userSignInRequestDto.getPassword(), user.getPassword())) {
-            throw new UserNotFoundException("Неверный email или пароль.");
+            throw new NotFoundException("Неверный email или пароль.");
         }
 
         return authenticate(user);
