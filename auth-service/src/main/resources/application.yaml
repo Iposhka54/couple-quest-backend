@@ -21,6 +21,17 @@ spring:
     properties:
       hibernate:
         default_schema: auth_service
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        enable.idempotence: true
+        acks: all
+        linger.ms: 5
+        request.timeout.ms: 30000
+        delivery.timeout.ms: 60000
 logging:
   level:
     org.springframework.boot.autoconfigure.liquibase: DEBUG
@@ -32,6 +43,13 @@ jwt:
     expiration_minutes: 30
   refresh:
     expiration_minutes: 44640 #31 day
+email-verification:
+  topic: auth.email-verification.requested
+  code:
+    length: 6
+    ttl-minutes: 10
+    max-attempts: 5
+    resend-cooldown-seconds: 60
 couple:
   invite:
     expiration-hours: 24
