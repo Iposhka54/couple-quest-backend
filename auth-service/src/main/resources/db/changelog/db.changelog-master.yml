@@ -1,3 +1,5 @@
 databaseChangeLog:
   - include:
       file: db/changelog/changes/V1__create_users_couple_and_invite_tables.sql
+  - include:
+      file: db/changelog/changes/V2__add_email_verification.sql

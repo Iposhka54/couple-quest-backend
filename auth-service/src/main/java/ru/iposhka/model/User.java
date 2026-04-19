@@ -36,6 +36,10 @@ public class User {
     @Enumerated
     private Gender gender;
 
+    private Boolean emailVerified;
+
+    private LocalDateTime emailVerifiedAt;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

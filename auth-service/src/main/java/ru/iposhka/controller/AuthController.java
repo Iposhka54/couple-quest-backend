@@ -13,11 +13,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.iposhka.dto.request.ResendEmailCodeRequestDto;
 import ru.iposhka.dto.request.UserSignInRequestDto;
 import ru.iposhka.dto.request.UserSignUpRequestDto;
+import ru.iposhka.dto.request.VerifyEmailCodeRequestDto;
 import ru.iposhka.dto.response.AuthResponseDto;
 import ru.iposhka.dto.response.JwtResponseDto;
 import ru.iposhka.dto.response.UserResponseDto;
+import ru.iposhka.model.AuthStatus;
 import ru.iposhka.service.AuthService;
 import ru.iposhka.service.UserService;
 
@@ -40,27 +43,40 @@ public class AuthController {
     public ResponseEntity<UserResponseDto> me(@RequestHeader("X-Auth-User-Id") Long userId) {
         return ResponseEntity.ok(userService.getInfoAboutUser(userId));
     }
-
-
     @PostMapping("/signUp")
-    public ResponseEntity<AuthResponseDto> signUp(@Validated @RequestBody UserSignUpRequestDto userSignUpRequestDto,
-            HttpServletResponse response) {
-        JwtResponseDto jwtResponseDto = authService.signUp(userSignUpRequestDto);
-
-        setRefreshTokenCookie(response, jwtResponseDto.getRefreshToken());
-
+    public ResponseEntity<AuthResponseDto> signUp(@Validated @RequestBody UserSignUpRequestDto userSignUpRequestDto) {
+        AuthResponseDto authResponseDto = authService.signUp(userSignUpRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new AuthResponseDto(jwtResponseDto.getAccessToken()));
+                .body(authResponseDto);
     }
 
     @PostMapping("/signIn")
     public ResponseEntity<AuthResponseDto> signIn(@Validated @RequestBody UserSignInRequestDto userSignInRequestDto,
             HttpServletResponse response) {
-        JwtResponseDto jwtResponseDto = authService.signIn(userSignInRequestDto);
+        AuthResponseDto authResponseDto = authService.signIn(userSignInRequestDto);
+        if (authResponseDto.getStatus() == AuthStatus.AUTHENTICATED) {
+            JwtResponseDto jwtResponseDto = authService.issueTokens(authResponseDto.getEmail());
+            setRefreshTokenCookie(response, jwtResponseDto.getRefreshToken());
+            authResponseDto.setAccessToken(jwtResponseDto.getAccessToken());
+        }
+        return ResponseEntity.ok(authResponseDto);
+    }
 
+    @PostMapping("/verify-email-code")
+    public ResponseEntity<AuthResponseDto> verifyEmailCode(
+            @Validated @RequestBody VerifyEmailCodeRequestDto verifyEmailCodeRequestDto,
+            HttpServletResponse response) {
+        AuthResponseDto authResponseDto = authService.verifyEmailCode(verifyEmailCodeRequestDto);
+        JwtResponseDto jwtResponseDto = authService.issueTokens(authResponseDto.getEmail());
         setRefreshTokenCookie(response, jwtResponseDto.getRefreshToken());
+        authResponseDto.setAccessToken(jwtResponseDto.getAccessToken());
+        return ResponseEntity.ok(authResponseDto);
+    }
 
-        return ResponseEntity.ok(new AuthResponseDto(jwtResponseDto.getAccessToken()));
+    @PostMapping("/resend-email-code")
+    public ResponseEntity<AuthResponseDto> resendEmailCode(
+            @Validated @RequestBody ResendEmailCodeRequestDto resendEmailCodeRequestDto) {
+        return ResponseEntity.ok(authService.resendEmailCode(resendEmailCodeRequestDto));
     }
 
     @PostMapping("/refresh")

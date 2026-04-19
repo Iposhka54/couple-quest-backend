@@ -14,5 +14,6 @@ public class UserResponseDto {
     private String email;
     private String name;
     private Gender gender;
+    private Boolean emailVerified;
     private CoupleStateResponseDto couple;
 }

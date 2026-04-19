@@ -31,6 +31,7 @@ public class UserService {
                 .email(user.getEmail())
                 .name(user.getName())
                 .gender(user.getGender())
+                .emailVerified(Boolean.TRUE.equals(user.getEmailVerified()))
                 .couple(coupleDto)
                 .build();
     }

@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.iposhka.dto.response.ErrorResponseDto;
+import ru.iposhka.exception.BadRequestException;
 import ru.iposhka.exception.BadJwtException;
 import ru.iposhka.exception.ConflictException;
 import ru.iposhka.exception.NotFoundException;
@@ -46,6 +47,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDto> handleJwt(BadJwtException e,
             HttpServletRequest request) {
         log.info("Jwt error: {}", e.getMessage());
+
+        return ResponseEntity.badRequest()
+                .body(buildError(request, e.getMessage()));
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponseDto> handleBadRequest(BadRequestException e,
+            HttpServletRequest request) {
+        log.info(e.getMessage());
 
         return ResponseEntity.badRequest()
                 .body(buildError(request, e.getMessage()));
