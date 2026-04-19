@@ -1,0 +1,42 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: notification-service
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:true}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS_ENABLE:true}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: notification-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "ru.iposhka.dto.event*"
+        spring.json.value.default.type: ru.iposhka.dto.event.EmailVerificationRequestedEvent
+
+app:
+  kafka:
+    topics:
+      email-verification: auth.email-verification.requested
+  mail:
+    from: ${MAIL_FROM}
+    project-name: ${MAIL_PROJECT_NAME}
+    support-email: ${MAIL_SUPPORT_EMAIL}
+    template:
+      verification-code: "templates/email/verification-email.html"
+
+logging:
+  level:
+    ru.iposhka.notification: INFO
