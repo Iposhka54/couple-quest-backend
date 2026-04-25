@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.HexFormat;
@@ -93,9 +94,6 @@ public class AuthService {
 
         if (!Boolean.TRUE.equals(user.getEmailVerified())) {
             EmailVerification verification = emailVerificationRepository.findLatestActiveByUserId(user.getId())
-                    .map(existing -> isVerificationReusable(existing)
-                            ? existing
-                            : refreshVerification(existing, user))
                     .orElseGet(() -> createAndSendVerification(user));
             return buildPendingResponse(user, verification);
         }
@@ -145,7 +143,8 @@ public class AuthService {
                     if (existing.getResendAvailableAt().isAfter(now())) {
                         throw new BadRequestException("Повторная отправка пока недоступна.");
                     }
-                    return refreshVerification(existing, user);
+                    invalidateVerification(existing);
+                    return createAndSendVerification(user);
                 })
                 .orElseGet(() -> createAndSendVerification(user));
         return buildPendingResponse(user, verification);
@@ -190,14 +189,6 @@ public class AuthService {
         return verification;
     }
 
-    private EmailVerification refreshVerification(EmailVerification verification, User user) {
-        VerificationPayload payload = rebuildVerification(user, verification);
-        EmailVerification refreshedVerification = payload.verification();
-        emailVerificationRepository.save(refreshedVerification);
-        publishVerificationRequestedEvent(user, refreshedVerification, payload.code());
-        return refreshedVerification;
-    }
-
     private VerificationPayload buildNewVerification(User user) {
         LocalDateTime now = now();
         String code = generateNumericCode();
@@ -214,40 +205,27 @@ public class AuthService {
         return new VerificationPayload(verification, code);
     }
 
-    private VerificationPayload rebuildVerification(User user, EmailVerification verification) {
-        LocalDateTime now = now();
-        String code = generateNumericCode();
-        verification.setUser(user);
-        verification.setCodeHash(hash(code));
-        verification.setExpiresAt(now.plusMinutes(codeTtlMinutes));
-        verification.setResendAvailableAt(now.plusSeconds(resendCooldownSeconds));
-        verification.setAttemptsCount(0);
-        verification.setMaxAttempts(maxAttempts);
-        verification.setCreatedAt(now);
-        verification.setUsedAt(null);
-        return new VerificationPayload(verification, code);
-    }
-
     private void publishVerificationRequestedEvent(User user, EmailVerification verification, String code) {
         LocalDateTime now = now();
         emailVerificationEventPublisher.publish(new EmailVerificationRequestedEvent(
+                UUID.randomUUID(),
                 verification.getId(),
                 user.getId(),
                 user.getEmail(),
                 user.getName(),
                 code,
                 verification.getExpiresAt(),
-                now
+                now,
+                "ACTIVE"
         ));
     }
 
     private record VerificationPayload(EmailVerification verification, String code) {
     }
 
-    private boolean isVerificationReusable(EmailVerification verification) {
-        LocalDateTime now = now();
-        return verification.getExpiresAt().isAfter(now)
-                && verification.getAttemptsCount() < verification.getMaxAttempts();
+    private void invalidateVerification(EmailVerification verification) {
+        verification.setUsedAt(now());
+        emailVerificationRepository.save(verification);
     }
 
     private JwtResponseDto authenticate(User user) {
@@ -270,12 +248,16 @@ public class AuthService {
     }
 
     private AuthResponseDto buildPendingResponse(User user, EmailVerification verification) {
-        long seconds = Math.max(0, java.time.Duration.between(now(), verification.getResendAvailableAt()).getSeconds());
+        LocalDateTime now = now();
+        long seconds = Math.max(0, Duration.between(now, verification.getResendAvailableAt()).getSeconds());
+        boolean expired = !verification.getExpiresAt().isAfter(now)
+                || verification.getAttemptsCount() >= verification.getMaxAttempts();
         return AuthResponseDto.builder()
                 .status(AuthStatus.EMAIL_VERIFICATION_REQUIRED)
                 .email(user.getEmail())
                 .emailVerified(false)
                 .resendAvailableInSeconds(seconds)
+                .verificationExpired(expired)
                 .build();
     }
 

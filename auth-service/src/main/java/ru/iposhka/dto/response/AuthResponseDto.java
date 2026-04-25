@@ -18,4 +18,5 @@ public class AuthResponseDto {
     private String email;
     private Boolean emailVerified;
     private Long resendAvailableInSeconds;
+    private Boolean verificationExpired;
 }
