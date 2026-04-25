@@ -1,0 +1,75 @@
+import { getAccessToken, setAccessToken } from './storage';
+
+const API_URL = '/api';
+
+async function request(path, options = {}) {
+  const headers = new Headers(options.headers || {});
+  const token = getAccessToken();
+
+  if (token && !headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+
+  if (options.body && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  const response = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers,
+    credentials: 'include',
+  });
+
+  if (response.status === 401 && path !== '/auth/refresh') {
+    const refreshed = await tryRefreshToken();
+    if (refreshed) {
+      return request(path, options);
+    }
+  }
+
+  if (!response.ok) {
+    let message = 'Произошла ошибка запроса';
+    try {
+      const payload = await response.json();
+      message = payload.message || payload.error || message;
+    } catch {
+      // ignore
+    }
+    throw new Error(message);
+  }
+
+  if (response.status === 204) {
+    return null;
+  }
+
+  return response.json();
+}
+
+export async function tryRefreshToken() {
+  try {
+    const response = await fetch(`${API_URL}/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      setAccessToken(null);
+      return false;
+    }
+
+    const data = await response.json();
+    setAccessToken(data.accessToken ?? null);
+    return Boolean(data.accessToken);
+  } catch {
+    setAccessToken(null);
+    return false;
+  }
+}
+
+export const authApi = {
+  signUp: (body) => request('/auth/signUp', { method: 'POST', body: JSON.stringify(body) }),
+  signIn: (body) => request('/auth/signIn', { method: 'POST', body: JSON.stringify(body) }),
+  verifyEmail: (body) => request('/auth/verify-email-code', { method: 'POST', body: JSON.stringify(body) }),
+  resendCode: (body) => request('/auth/resend-email-code', { method: 'POST', body: JSON.stringify(body) }),
+  me: () => request('/auth/me', { method: 'GET' }),
+};
