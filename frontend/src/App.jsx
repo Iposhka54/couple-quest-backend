@@ -12,6 +12,7 @@ import { ShopPage } from './pages/ShopPage';
 import { MenuPage } from './pages/MenuPage';
 import { CalendarPage } from './pages/CalendarPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { InvitePage } from './pages/InvitePage';
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/invite/:token" element={<InvitePage />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<EmailVerificationGate />}>
             <Route path="/app" element={<DashboardPage />} />

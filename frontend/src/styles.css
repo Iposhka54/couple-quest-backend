@@ -454,6 +454,15 @@ select {
   gap: 20px;
 }
 
+.invite-page-shell {
+  display: flex;
+  justify-content: center;
+}
+
+.invite-landing {
+  width: min(720px, 100%);
+}
+
 .section-title {
   margin: 0;
   color: var(--heading-text);

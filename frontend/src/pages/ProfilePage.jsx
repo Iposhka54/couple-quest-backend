@@ -3,6 +3,10 @@ import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthContext';
 import { ApiError, coupleApi } from '../features/auth/api';
 
+const FRONTEND_ORIGIN = window.location.origin?.startsWith('http')
+  ? window.location.origin
+  : 'http://localhost';
+
 function formatGender(gender) {
   return gender === 'MALE' ? 'Парень' : gender === 'FEMALE' ? 'Девушка' : gender;
 }
@@ -33,11 +37,11 @@ export function ProfilePage() {
   const partner = user?.couple?.partner;
 
   const inviteLink = useMemo(() => {
-    if (!invite?.token) {
+    if (!invite?.invite) {
       return '';
     }
 
-    return `${window.location.origin}/profile?invite=${encodeURIComponent(invite.token)}`;
+    return `${FRONTEND_ORIGIN}/invite/${encodeURIComponent(invite.invite)}`;
   }, [invite]);
 
   useEffect(() => {
