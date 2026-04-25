@@ -53,3 +53,5 @@ email-verification:
 couple:
   invite:
     expiration-hours: 24
+  invite.accepted:
+    topic: auth.couple-invite.accepted

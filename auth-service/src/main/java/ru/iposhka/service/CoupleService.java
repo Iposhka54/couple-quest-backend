@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.iposhka.dto.event.CoupleInviteAcceptedEvent;
 import ru.iposhka.dto.response.CoupleInviteResponseDto;
 import ru.iposhka.dto.response.CoupleStateResponseDto;
 import ru.iposhka.dto.response.PartnerShortDto;
@@ -38,6 +39,7 @@ public class CoupleService {
     private final CoupleInviteRepository coupleInviteRepository;
     private final SecureRandom SECURE_RANDOM;
     private final Clock clock;
+    private final CoupleInviteAcceptedEventPublisher coupleInviteAcceptedEventPublisher;
 
     @Value("${couple.invite.expiration-hours:24}")
     private long inviteExpirationHours;
@@ -103,6 +105,7 @@ public class CoupleService {
         coupleInviteRepository.save(lockedInvite);
 
         revokeOwnActiveInviteIfExists(accepterUserId);
+        publishInviteAcceptedEvent(inviter, accepter, now);
 
         return toCoupleStateDto(inviter, accepter, accepterUserId);
     }
@@ -286,5 +289,18 @@ public class CoupleService {
 
     private LocalDateTime now() {
         return LocalDateTime.now(clock);
+    }
+
+    private void publishInviteAcceptedEvent(User inviter, User accepter, LocalDateTime createdAt) {
+        coupleInviteAcceptedEventPublisher.publish(new CoupleInviteAcceptedEvent(
+                UUID.randomUUID(),
+                inviter.getId(),
+                inviter.getEmail(),
+                inviter.getName(),
+                accepter.getId(),
+                accepter.getEmail(),
+                accepter.getName(),
+                createdAt
+        ));
     }
 }
