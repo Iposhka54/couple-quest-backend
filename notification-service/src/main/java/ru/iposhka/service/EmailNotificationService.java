@@ -16,6 +16,7 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import ru.iposhka.dto.event.CoupleInviteAcceptedEvent;
 import ru.iposhka.config.MailProperties;
 import ru.iposhka.dto.event.EmailVerificationRequestedEvent;
 import ru.iposhka.exception.EmailDeliveryException;
@@ -39,10 +40,22 @@ public class EmailNotificationService {
     @Value("${app.mail.template.verification-code}")
     private String verificationTemplatePath;
 
+    @Value("${app.mail.template.couple-invite-accepted}")
+    private String coupleInviteAcceptedTemplatePath;
+
+    @Value("${app.mail.site-url}")
+    private String siteUrl;
+
     public EmailContent prepareVerificationEmail(EmailVerificationRequestedEvent event) {
         validateEvent(event);
 
         return new EmailContent(buildSubject(), buildHtml(event));
+    }
+
+    public EmailContent prepareCoupleInviteAcceptedEmail(CoupleInviteAcceptedEvent event) {
+        validateInviteAcceptedEvent(event);
+
+        return new EmailContent(buildInviteAcceptedSubject(), buildInviteAcceptedHtml(event));
     }
 
     public void send(EmailJob job) {
@@ -113,6 +126,24 @@ public class EmailNotificationService {
                 .replace("{{supportEmail}}", Encode.forHtml(mailProperties.supportEmail()));
     }
 
+    private String buildInviteAcceptedSubject() {
+        return "Ваше приглашение в пару принято в " + mailProperties.projectName();
+    }
+
+    private String buildInviteAcceptedHtml(CoupleInviteAcceptedEvent event) {
+        String template = templateLoader.loadTemplate(coupleInviteAcceptedTemplatePath);
+
+        return template
+                .replace("{{projectName}}", Encode.forHtml(mailProperties.projectName()))
+                .replace("{{inviterName}}", Encode.forHtml(resolveUserName(event.inviterName())))
+                .replace("{{partnerName}}", Encode.forHtml(resolveUserName(event.accepterName())))
+                .replace("{{partnerEmail}}", Encode.forHtml(event.accepterEmail().trim()))
+                .replace("{{acceptedAt}}", Encode.forHtml(formatDateTime(event.createdAt())))
+                .replace("{{siteUrl}}", Encode.forHtmlAttribute(siteUrl))
+                .replace("{{siteUrlText}}", Encode.forHtml(siteUrl))
+                .replace("{{supportEmail}}", Encode.forHtml(mailProperties.supportEmail()));
+    }
+
     private String resolveUserName(String name) {
         if (name == null || name.isBlank()) {
             return "гость";
@@ -134,6 +165,20 @@ public class EmailNotificationService {
 
         if (!SIMPLE_EMAIL_PATTERN.matcher(event.email().trim()).matches()) {
             throw new IllegalArgumentException("Recipient email has invalid format");
+        }
+    }
+
+    private void validateInviteAcceptedEvent(CoupleInviteAcceptedEvent event) {
+        Objects.requireNonNull(event, "CoupleInviteAcceptedEvent must not be null");
+        requireNonBlank(event.inviterEmail(), "Recipient email must not be blank");
+        requireNonBlank(event.accepterEmail(), "Partner email must not be blank");
+
+        if (!SIMPLE_EMAIL_PATTERN.matcher(event.inviterEmail().trim()).matches()) {
+            throw new IllegalArgumentException("Recipient email has invalid format");
+        }
+
+        if (!SIMPLE_EMAIL_PATTERN.matcher(event.accepterEmail().trim()).matches()) {
+            throw new IllegalArgumentException("Partner email has invalid format");
         }
     }
 

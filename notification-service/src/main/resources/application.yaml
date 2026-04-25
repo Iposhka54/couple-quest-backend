@@ -48,6 +48,7 @@ app:
   kafka:
     topics:
       email-verification: auth.email-verification.requested
+      couple-invite-accepted: auth.couple-invite.accepted
   email-jobs:
     poll-delay-ms: 1000
     batch-size: 100
@@ -63,6 +64,8 @@ app:
     support-email: ${MAIL_SUPPORT_EMAIL}
     template:
       verification-code: "templates/email/verification-email.html"
+      couple-invite-accepted: "templates/email/couple-invite-accepted.html"
+    site-url: ${MAIL_SITE_URL:http://localhost:5173}
 
 logging:
   level:

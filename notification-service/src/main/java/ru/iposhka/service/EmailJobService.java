@@ -13,6 +13,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import ru.iposhka.config.EmailJobProperties;
+import ru.iposhka.dto.event.CoupleInviteAcceptedEvent;
 import ru.iposhka.dto.event.EmailVerificationRequestedEvent;
 import ru.iposhka.model.EmailJob;
 import ru.iposhka.repository.EmailJobRepository;
@@ -80,6 +81,48 @@ public class EmailJobService {
                     event.eventId(),
                     event.userId(),
                     EmailUtils.maskEmail(event.email()),
+                    job.getStatus()
+            );
+        } catch (DataIntegrityViolationException ex) {
+            log.info("Email job already persisted concurrently, skipping duplicate event: eventId={}", event.eventId());
+        }
+    }
+
+    @Transactional
+    public void createPendingJobIfNotExists(CoupleInviteAcceptedEvent event) {
+        if (event == null || event.eventId() == null) {
+            throw new IllegalArgumentException("Couple invite accepted event and eventId must not be null");
+        }
+
+        if (emailJobRepository.existsById(event.eventId())) {
+            log.info("Email job already exists, skipping duplicate event: eventId={}", event.eventId());
+            return;
+        }
+
+        EmailNotificationService.EmailContent content =
+                emailNotificationService.prepareCoupleInviteAcceptedEmail(event);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime createdAt = Optional.ofNullable(event.createdAt()).orElse(now);
+
+        EmailJob job = EmailJob.pending(
+                event.eventId(),
+                event.eventId(),
+                event.inviterUserId(),
+                event.inviterEmail().trim(),
+                content.subject(),
+                content.body(),
+                createdAt,
+                createdAt.plusDays(7),
+                now
+        );
+
+        try {
+            emailJobRepository.save(job);
+            log.info(
+                    "Couple invite accepted email job created: eventId={}, inviterUserId={}, inviterEmail={}, status={}",
+                    event.eventId(),
+                    event.inviterUserId(),
+                    EmailUtils.maskEmail(event.inviterEmail()),
                     job.getStatus()
             );
         } catch (DataIntegrityViolationException ex) {
