@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import ru.iposhka.config.MailProperties;
 import ru.iposhka.dto.event.EmailVerificationRequestedEvent;
 import ru.iposhka.exception.EmailDeliveryException;
+import ru.iposhka.model.EmailJob;
 import ru.iposhka.util.EmailUtils;
 
 @Slf4j
@@ -38,8 +39,21 @@ public class EmailNotificationService {
     @Value("${app.mail.template.verification-code}")
     private String verificationTemplatePath;
 
-    public void sendVerificationCode(EmailVerificationRequestedEvent event) {
+    public EmailContent prepareVerificationEmail(EmailVerificationRequestedEvent event) {
         validateEvent(event);
+
+        return new EmailContent(buildSubject(), buildHtml(event));
+    }
+
+    public void send(EmailJob job) {
+        Objects.requireNonNull(job, "EmailJob must not be null");
+        requireNonBlank(job.getEmail(), "Recipient email must not be blank");
+        requireNonBlank(job.getSubject(), "Email subject must not be blank");
+        requireNonBlank(job.getBody(), "Email body must not be blank");
+
+        if (!SIMPLE_EMAIL_PATTERN.matcher(job.getEmail().trim()).matches()) {
+            throw new IllegalArgumentException("Recipient email has invalid format");
+        }
 
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
@@ -50,34 +64,34 @@ public class EmailNotificationService {
             );
 
             helper.setFrom(mailProperties.from());
-            helper.setTo(event.email().trim());
-            helper.setSubject(buildSubject());
-            helper.setText(buildHtml(event), true);
+            helper.setTo(job.getEmail().trim());
+            helper.setSubject(job.getSubject());
+            helper.setText(job.getBody(), true);
 
             mailSender.send(mimeMessage);
 
             log.info(
                     "Verification email sent successfully: eventId={}, userId={}, email={}, expiresAt={}",
-                    event.eventId(),
-                    event.userId(),
-                    EmailUtils.maskEmail(event.email()),
-                    event.expiresAt()
+                    job.getEventId(),
+                    job.getUserId(),
+                    EmailUtils.maskEmail(job.getEmail()),
+                    job.getExpiresAt()
             );
         } catch (MailAuthenticationException ex) {
             log.error(
                     "Mail authentication failed: eventId={}, userId={}, email={}",
-                    event.eventId(),
-                    event.userId(),
-                    EmailUtils.maskEmail(event.email()),
+                    job.getEventId(),
+                    job.getUserId(),
+                    EmailUtils.maskEmail(job.getEmail()),
                     ex
             );
             throw new EmailDeliveryException("SMTP authentication failed", ex);
         } catch (MessagingException | MailException ex) {
             log.error(
                     "Failed to send verification email: eventId={}, userId={}, email={}",
-                    event.eventId(),
-                    event.userId(),
-                    EmailUtils.maskEmail(event.email()),
+                    job.getEventId(),
+                    job.getUserId(),
+                    EmailUtils.maskEmail(job.getEmail()),
                     ex
             );
             throw new EmailDeliveryException("Failed to send verification email", ex);
@@ -127,5 +141,8 @@ public class EmailNotificationService {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(message);
         }
+    }
+
+    public record EmailContent(String subject, String body) {
     }
 }
