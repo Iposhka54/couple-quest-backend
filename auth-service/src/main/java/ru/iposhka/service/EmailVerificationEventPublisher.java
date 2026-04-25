@@ -16,6 +16,6 @@ public class EmailVerificationEventPublisher {
     private String topic;
 
     public void publish(EmailVerificationRequestedEvent event) {
-        kafkaTemplate.send(topic, event.email(), event);
+        kafkaTemplate.send(topic, String.valueOf(event.userId()), event);
     }
 }
