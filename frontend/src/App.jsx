@@ -11,6 +11,7 @@ import { TasksPage } from './pages/TasksPage';
 import { ShopPage } from './pages/ShopPage';
 import { MenuPage } from './pages/MenuPage';
 import { CalendarPage } from './pages/CalendarPage';
+import { ProfilePage } from './pages/ProfilePage';
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<EmailVerificationGate />}>
             <Route path="/app" element={<DashboardPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/shop" element={<ShopPage />} />
             <Route path="/menu" element={<MenuPage />} />

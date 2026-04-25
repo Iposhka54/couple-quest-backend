@@ -62,10 +62,9 @@ export function MainLayout() {
           </button>
           {isAuthenticated ? (
             <>
-              <div className="user-chip">
+              <Link to="/profile" className="user-chip user-chip-link" title="Открыть профиль">
                 <strong>{user?.name ?? user?.email}</strong>
-                <span>{isEmailVerified ? 'email подтвержден' : 'нужно подтвердить email'}</span>
-              </div>
+              </Link>
               <button className="ghost-button" onClick={logout}>Выйти</button>
             </>
           ) : (

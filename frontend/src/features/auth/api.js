@@ -2,6 +2,15 @@ import { getAccessToken, setAccessToken } from './storage';
 
 const API_URL = '/api';
 
+class ApiError extends Error {
+  constructor(message, status, payload = null) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.payload = payload;
+  }
+}
+
 async function request(path, options = {}) {
   const headers = new Headers(options.headers || {});
   const token = getAccessToken();
@@ -29,13 +38,14 @@ async function request(path, options = {}) {
 
   if (!response.ok) {
     let message = 'Произошла ошибка запроса';
+    let payload = null;
     try {
-      const payload = await response.json();
+      payload = await response.json();
       message = payload.message || payload.error || message;
     } catch {
       // ignore
     }
-    throw new Error(message);
+    throw new ApiError(message, response.status, payload);
   }
 
   if (response.status === 204) {
@@ -73,3 +83,12 @@ export const authApi = {
   resendCode: (body) => request('/auth/resend-email-code', { method: 'POST', body: JSON.stringify(body) }),
   me: () => request('/auth/me', { method: 'GET' }),
 };
+
+export const coupleApi = {
+  getInvite: () => request('/couple/invite', { method: 'GET' }),
+  createInvite: () => request('/couple/invite', { method: 'POST' }),
+  acceptInvite: (token) => request(`/couple/invite/accept?invite=${encodeURIComponent(token)}`, { method: 'POST' }),
+  revokeInvite: () => request('/couple/invite', { method: 'DELETE' }),
+};
+
+export { ApiError };
