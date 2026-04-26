@@ -107,7 +107,7 @@ public class CoupleService {
         revokeOwnActiveInviteIfExists(accepterUserId);
         publishInviteAcceptedEvent(inviter, accepter, now);
 
-        return toCoupleStateDto(inviter, accepter, accepterUserId);
+        return toCoupleStateDto(couple, inviter, accepter, accepterUserId);
     }
 
     @Transactional
@@ -258,6 +258,7 @@ public class CoupleService {
     }
 
     private CoupleStateResponseDto toCoupleStateDto(
+            Couple couple,
             User inviter,
             User accepter,
             Long currentUserId
@@ -265,6 +266,7 @@ public class CoupleService {
         User partner = inviter.getId().equals(currentUserId) ? accepter : inviter;
 
         return new CoupleStateResponseDto(
+                couple.getId(),
                 true,
                 new PartnerShortDto(partner.getName(), partner.getGender().name())
         );

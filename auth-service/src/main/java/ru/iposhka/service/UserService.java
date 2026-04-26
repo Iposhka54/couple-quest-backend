@@ -42,6 +42,7 @@ public class UserService {
                     User partner = resolvePartner(couple, user.getId());
 
                     return new CoupleStateResponseDto(
+                            couple.getId(),
                             true,
                             new PartnerShortDto(
                                     partner.getName(),
@@ -49,7 +50,7 @@ public class UserService {
                             )
                     );
                 })
-                .orElseGet(() -> new CoupleStateResponseDto(false, null));
+                .orElseGet(() -> new CoupleStateResponseDto(null, false, null));
     }
 
     private User resolvePartner(Couple couple, Long currentUserId) {
