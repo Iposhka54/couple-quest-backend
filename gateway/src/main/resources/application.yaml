@@ -25,10 +25,8 @@ spring:
             - id: menu-service
               uri: ${app.routes.menu-service.uri}
               predicates:
-                - Path=/api/menu/**
-                - Path=/api/meals/**
+                - Path=/api/menu/**,/api/meals/**
             - id: economy-service
               uri: ${app.routes.economy-service.uri}
               predicates:
-                - Path=/api/wallet/**
-                - Path=/api/transactions/**
+                - Path=/api/wallet/**,/api/transactions/**
