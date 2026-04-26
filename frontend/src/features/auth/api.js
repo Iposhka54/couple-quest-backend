@@ -91,4 +91,17 @@ export const coupleApi = {
   revokeInvite: () => request('/couple/invite', { method: 'DELETE' }),
 };
 
+export const menuApi = {
+  getMeals: (coupleId) => request(`/meals?coupleId=${encodeURIComponent(coupleId)}`, { method: 'GET' }),
+  createMeal: (body) => request('/meals', { method: 'POST', body: JSON.stringify(body) }),
+  updateMeal: (mealId, body) => request(`/meals/${mealId}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteMeal: (mealId, coupleId) => request(`/meals/${mealId}?coupleId=${encodeURIComponent(coupleId)}`, { method: 'DELETE' }),
+  getWeek: (weekStart, coupleId) => request(`/menu/weeks/${weekStart}?coupleId=${encodeURIComponent(coupleId)}`, { method: 'GET' }),
+  upsertEntry: (weekStart, body) => request(`/menu/weeks/${weekStart}/entries`, { method: 'POST', body: JSON.stringify(body) }),
+  deleteEntry: (weekStart, entryId, coupleId) => request(
+    `/menu/weeks/${weekStart}/entries/${entryId}?coupleId=${encodeURIComponent(coupleId)}`,
+    { method: 'DELETE' },
+  ),
+};
+
 export { ApiError };

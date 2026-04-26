@@ -321,6 +321,124 @@ select {
   gap: 22px;
 }
 
+.menu-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.8fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.menu-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.form-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.form-grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form-grid-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.menu-form textarea,
+.menu-form input,
+.menu-form select {
+  width: 100%;
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.week-day-card,
+.meal-card,
+.shopping-item,
+.planner-slot {
+  padding: 18px;
+  border-radius: 22px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-soft);
+}
+
+.planner-slot {
+  display: grid;
+  gap: 10px;
+}
+
+.planner-slot-title {
+  color: var(--muted-text);
+  font-size: 0.9rem;
+}
+
+.planner-entry {
+  display: grid;
+  gap: 6px;
+}
+
+.planner-entry p,
+.meal-card p {
+  margin: 0;
+  color: var(--muted-text);
+}
+
+.planner-empty {
+  color: var(--muted-text);
+  font-size: 0.95rem;
+}
+
+.small-button {
+  padding: 8px 12px;
+  width: fit-content;
+}
+
+.ingredient-row {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr 0.8fr auto;
+  gap: 10px;
+}
+
+.meal-cards,
+.shopping-list {
+  display: grid;
+  gap: 14px;
+}
+
+.meal-kbju {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: var(--muted-text);
+}
+
+.ingredient-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.shopping-panel {
+  position: sticky;
+  top: 24px;
+}
+
+.shopping-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .stack-md {
   display: grid;
   gap: 16px;
@@ -584,7 +702,12 @@ select {
   .timeline-item,
   .profile-grid,
   .info-list.compact,
-  .couple-card {
+  .couple-card,
+  .menu-layout,
+  .week-grid,
+  .form-grid-2,
+  .form-grid-4,
+  .ingredient-row {
     grid-template-columns: 1fr;
   }
 
